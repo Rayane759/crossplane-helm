@@ -1,0 +1,46 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: CompositeResourceDefinition
+metadata:
+  name: {{ .Values.xrd.plural }}.{{ .Values.xrd.group }}
+spec:
+  group: {{ .Values.xrd.group }}
+  names:
+    kind: {{ .Values.xrd.kind }}
+    plural: {{ .Values.xrd.plural }}
+  claimNames:
+    kind: HelmApp
+    plural: helmapps
+  versions:
+    - name: v1alpha1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                parameters:
+                  type: object
+                  properties:
+                    namespace:
+                      type: string
+                      description: Namespace cible du Release Helm
+                    releaseName:
+                      type: string
+                      description: Nom du Release Helm (optionnel)
+                    values:
+                      type: object
+                      x-kubernetes-preserve-unknown-fields: true
+                      description: Values Helm passées au chart
+                  required:
+                    - namespace
+              required:
+                - parameters
+            status:
+              type: object
+              properties:
+                releaseStatus:
+                  type: string
+              x-kubernetes-preserve-unknown-fields: true
