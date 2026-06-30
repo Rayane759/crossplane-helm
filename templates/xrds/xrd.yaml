@@ -1,12 +1,12 @@
 apiVersion: apiextensions.crossplane.io/v1
 kind: CompositeResourceDefinition
 metadata:
-  name: {{ .Values.xrd.plural }}.{{ .Values.xrd.group }}
+  name: xhelmapps.platform.example.org
 spec:
-  group: {{ .Values.xrd.group }}
+  group: platform.example.org
   names:
-    kind: {{ .Values.xrd.kind }}
-    plural: {{ .Values.xrd.plural }}
+    kind: XHelmApp
+    plural: xhelmapps
   claimNames:
     kind: HelmApp
     plural: helmapps
@@ -26,14 +26,48 @@ spec:
                   properties:
                     namespace:
                       type: string
-                      description: Namespace cible du Release Helm
-                    releaseName:
-                      type: string
-                      description: Nom du Release Helm (optionnel)
+                      description: Namespace cible du déploiement
+                    replicas:
+                      type: integer
+                      description: Nombre de replicas souhaité
+                      default: 1
+                      minimum: 0
+                    image:
+                      type: object
+                      description: Image du conteneur principal
+                      properties:
+                        repository:
+                          type: string
+                        tag:
+                          type: string
+                      required:
+                        - repository
+                        - tag
+                    resources:
+                      type: object
+                      description: Requêtes et limites CPU/RAM
+                      properties:
+                        requests:
+                          type: object
+                          properties:
+                            cpu:
+                              type: string
+                            memory:
+                              type: string
+                        limits:
+                          type: object
+                          properties:
+                            cpu:
+                              type: string
+                            memory:
+                              type: string
                     values:
                       type: object
                       x-kubernetes-preserve-unknown-fields: true
-                      description: Values Helm passées au chart
+                      description: >-
+                        Values Helm additionnelles, fusionnées avec les champs
+                        structurés ci-dessus. Permet de couvrir des besoins non
+                        prévus par l'API structurée sans modifier la XRD.
                   required:
                     - namespace
               required:
@@ -41,6 +75,7 @@ spec:
             status:
               type: object
               properties:
-                releaseStatus:
+                releaseState:
                   type: string
+                  description: État du Release Helm sous-jacent (ex. deployed, failed)
               x-kubernetes-preserve-unknown-fields: true
